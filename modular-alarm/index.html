@@ -14,11 +14,12 @@
         <div class="brand"><div class="brand-mark"><i></i><i></i><i></i></div><div class="brand-copy"><strong>modular</strong><span data-i18n="appSubtitle">ALARM WORKSPACE</span></div></div>
         <div class="header-actions">
           <div class="language-toggle glass-control" role="group" aria-label="Language" data-i18n-aria="language"><button class="language-option active" type="button" data-language="en">EN</button><button class="language-option" type="button" data-language="ko">한</button></div>
+          <div class="theme-picker glass-control" role="group" aria-label="Theme" data-i18n-aria="theme"><button class="theme-option active" type="button" data-theme="default" data-i18n="themeDefault" data-i18n-aria="themeDefault">Default</button><button class="theme-option" type="button" data-theme="light" data-i18n="themeWhite" data-i18n-aria="themeWhite">White</button><button class="theme-option" type="button" data-theme="black" data-i18n="themeBlack" data-i18n-aria="themeBlack">Black</button></div>
           <button class="primary-button" id="add-alarm-button" type="button"><span class="icon icon-plus"></span><span data-i18n="addAlarm">Add alarm</span></button>
         </div>
       </header>
       <main class="app-main">
-        <section class="page-heading"><div><p class="eyebrow" data-i18n="alarms">Alarms</p><h1 data-i18n="pageTitle">Keep your morning simple.</h1><p class="page-description" data-i18n="pageDescription">One alarm can hold multiple steps.</p></div><div class="next-pill glass-control" id="next-pill"></div></section>
+        <section class="page-heading"><div><p class="eyebrow" data-i18n="alarms">Alarms</p><h1 data-i18n="pageTitle">Keep your morning simple.</h1><p class="page-description" data-i18n="pageDescription">One alarm can hold multiple steps.</p></div></section>
         <section class="alarm-list" id="alarm-list" aria-live="polite"></section>
         <section class="empty-state glass-card hidden" id="empty-state"><div class="empty-icon"><span class="icon icon-bell"></span></div><h2 data-i18n="noAlarms">No alarms yet</h2><p data-i18n="noAlarmsHint">Create one alarm, then add as many modules as you need.</p><button class="secondary-button" id="empty-add-button" type="button"><span class="icon icon-plus"></span><span data-i18n="createFirstAlarm">Create your first alarm</span></button></section>
       </main>
