@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d1118" />
+    <title>Modular Alarm</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+    <div class="app-window">
+      <header class="app-header">
+        <div class="brand"><div class="brand-mark"><i></i><i></i><i></i></div><div class="brand-copy"><strong>modular</strong><span data-i18n="appSubtitle">ALARM WORKSPACE</span></div></div>
+        <div class="header-actions">
+          <div class="language-toggle glass-control" role="group" aria-label="Language" data-i18n-aria="language"><button class="language-option active" type="button" data-language="en">EN</button><button class="language-option" type="button" data-language="ko">한</button></div>
+          <button class="primary-button" id="add-alarm-button" type="button"><span class="icon icon-plus"></span><span data-i18n="addAlarm">Add alarm</span></button>
+        </div>
+      </header>
+      <main class="app-main">
+        <section class="page-heading"><div><p class="eyebrow" data-i18n="alarms">Alarms</p><h1 data-i18n="pageTitle">Keep your morning simple.</h1><p class="page-description" data-i18n="pageDescription">One alarm can hold multiple steps.</p></div><div class="next-pill glass-control" id="next-pill"></div></section>
+        <section class="alarm-list" id="alarm-list" aria-live="polite"></section>
+        <section class="empty-state glass-card hidden" id="empty-state"><div class="empty-icon"><span class="icon icon-bell"></span></div><h2 data-i18n="noAlarms">No alarms yet</h2><p data-i18n="noAlarmsHint">Create one alarm, then add as many modules as you need.</p><button class="secondary-button" id="empty-add-button" type="button"><span class="icon icon-plus"></span><span data-i18n="createFirstAlarm">Create your first alarm</span></button></section>
+      </main>
+      <footer class="app-footer"><span data-i18n="footerHint">Keep this page open for alarms to ring.</span><button class="sound-button" id="enable-sound-button" type="button"><span class="icon icon-bell"></span><span data-i18n="enableSound">Enable sound</span></button><span class="save-status"><i></i><span data-i18n="savedLocally">Saved locally</span></span></footer>
+    </div>
+
+    <div class="modal-backdrop hidden" id="alarm-modal-backdrop"><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="alarm-modal-title"><button class="icon-button modal-close" type="button" id="alarm-modal-close" aria-label="Close" data-i18n-aria="close"><span class="icon icon-close"></span></button><p class="eyebrow" data-i18n="alarmEditor">Alarm editor</p><h2 id="alarm-modal-title" data-i18n="newAlarmTitle">New alarm</h2><form id="alarm-form"><input type="hidden" id="alarm-id" /><label class="field-label" for="alarm-name" data-i18n="alarmName">Alarm name</label><input class="text-input" id="alarm-name" type="text" maxlength="40" data-i18n-placeholder="alarmNamePlaceholder" placeholder="Morning routine" required /><div class="field-grid"><div><label class="field-label" for="alarm-time" data-i18n="time">Time</label><input class="text-input" id="alarm-time" type="time" required /></div><div><label class="field-label" data-i18n="repeat">Repeat</label><div class="repeat-picker" id="repeat-picker"></div></div></div><div class="modal-actions"><button class="secondary-button" type="button" id="alarm-cancel-button" data-i18n="cancel">Cancel</button><button class="primary-button" type="submit" data-i18n="saveAlarm">Save alarm</button></div></form></section></div>
+
+    <div class="modal-backdrop hidden" id="module-modal-backdrop"><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="module-modal-title"><button class="icon-button modal-close" type="button" id="module-modal-close" aria-label="Close" data-i18n-aria="close"><span class="icon icon-close"></span></button><p class="eyebrow" data-i18n="moduleEditor">Alarm module</p><h2 id="module-modal-title" data-i18n="addModuleTitle">Add a module</h2><p class="modal-description" data-i18n="addModuleHint">Add another time inside this alarm.</p><form id="module-form"><input type="hidden" id="module-alarm-id" /><input type="hidden" id="module-id" /><label class="field-label" for="module-name" data-i18n="moduleName">Module name</label><input class="text-input" id="module-name" type="text" maxlength="40" data-i18n-placeholder="moduleNamePlaceholder" placeholder="Drink water" required /><label class="field-label" for="module-time" data-i18n="time">Time</label><input class="text-input" id="module-time" type="time" required /><div class="modal-actions"><button class="secondary-button" type="button" id="module-cancel-button" data-i18n="cancel">Cancel</button><button class="primary-button" type="submit" data-i18n="addModule">Add module</button></div></form></section></div>
+
+    <div class="ring-backdrop hidden" id="ring-backdrop"><section class="ring-card" role="alertdialog" aria-modal="true" aria-labelledby="ring-title"><div class="ring-bell"><span class="icon icon-bell"></span></div><p class="eyebrow" data-i18n="alarmRinging">Alarm ringing</p><h2 id="ring-title"></h2><div class="ring-time" id="ring-time"></div><button class="primary-button ring-stop-button" id="stop-alarm-button" type="button"><span class="icon icon-close"></span><span data-i18n="stopAlarm">Stop alarm</span></button></section></div>
+    <audio id="alarm-audio" src="alarm-sound.m4a" preload="auto" loop aria-hidden="true"></audio>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
