@@ -31,12 +31,13 @@ const translations = {
 };
 
 Object.assign(translations.ko, {
+  appSubtitle:'모듈러 알람 서비스',
   enableSound:'소리 및 Windows 알림 켜기',
   soundReady:'소리 및 알림 준비 완료',
   soundEnabled:'알람 소리와 Windows 알림을 켰습니다.',
   notificationBlocked:'Windows 알림이 차단되어 있습니다. 브라우저 설정에서 허용해 주세요.',
   notificationUnavailable:'이 브라우저에서는 Windows 알림을 지원하지 않습니다.',
-  pageTitle:'아침을 간단하게 시작하세요.',
+  pageTitle:'모듈러 알람으로 편리하게 관리하세요.',
   pageDescription:'알람 하나에 여러 단계를 설정할 수 있습니다.',
   noAlarms:'아직 알람이 없습니다.',
   noAlarmsHint:'알람 하나를 만들고 필요한 만큼 모듈을 추가해 보세요.',
