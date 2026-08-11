@@ -2,6 +2,7 @@ const STORAGE_KEY = 'modular-alarm-simple-state-v1';
 const STATE_VERSION = 2;
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const nativeNotifyPort = Number(new URLSearchParams(location.search).get('notifyPort') || 0);
+const normalizeTheme = theme => theme === 'light' || theme === 'black' ? theme : 'default';
 const TRAINING_SCHEDULE = [
   {id:'period-1',name:'Period 1',nameKo:'1교시',time:'09:50',enabled:true},
   {id:'period-2',name:'Period 2',nameKo:'2교시',time:'10:50',enabled:true},
@@ -32,6 +33,10 @@ const translations = {
 
 Object.assign(translations.ko, {
   appSubtitle:'모듈러 알람 서비스',
+  theme:'테마',
+  themeDefault:'기본',
+  themeWhite:'화이트',
+  themeBlack:'블랙',
   enableSound:'소리 및 Windows 알림 켜기',
   soundReady:'소리 및 알림 준비 완료',
   soundEnabled:'알람 소리와 Windows 알림을 켰습니다.',
@@ -61,6 +66,10 @@ Object.assign(translations.ko, {
 });
 
 Object.assign(translations.en, {
+  theme:'Theme',
+  themeDefault:'Default',
+  themeWhite:'White',
+  themeBlack:'Black',
   enableSound:'Enable sound & notifications',
   soundReady:'Sound & notifications ready',
   soundEnabled:'Alarm sound and Windows notifications enabled',
@@ -75,7 +84,7 @@ const triggeredAlarmKeys = new Set(); const defaultDocumentTitle = document.titl
 const $ = (selector, parent=document) => parent.querySelector(selector);
 const $$ = (selector, parent=document) => [...parent.querySelectorAll(selector)];
 
-function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(saved&&Array.isArray(saved.alarms)){const alarms=structuredClone(saved.alarms);if(saved.scheduleVersion!==STATE_VERSION){const firstIndex=alarms.findIndex(alarm=>alarm.id==='morning-routine');if(firstIndex>=0)alarms[firstIndex]=createTrainingAlarm();else alarms.unshift(createTrainingAlarm());}return{language:saved.language==='ko'?'ko':'en',scheduleVersion:STATE_VERSION,alarms};}}catch(error){}return{language:'en',scheduleVersion:STATE_VERSION,alarms:structuredClone(DEFAULT_ALARMS)};}
+function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));if(saved&&Array.isArray(saved.alarms)){const alarms=structuredClone(saved.alarms);if(saved.scheduleVersion!==STATE_VERSION){const firstIndex=alarms.findIndex(alarm=>alarm.id==='morning-routine');if(firstIndex>=0)alarms[firstIndex]=createTrainingAlarm();else alarms.unshift(createTrainingAlarm());}return{language:saved.language==='ko'?'ko':'en',theme:normalizeTheme(saved.theme),scheduleVersion:STATE_VERSION,alarms};}}catch(error){}return{language:'en',theme:'default',scheduleVersion:STATE_VERSION,alarms:structuredClone(DEFAULT_ALARMS)};}
 function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(error){}}
 function lang(){return state.language==='ko'?'ko':'en';}
 function t(key,values={}){let value=translations[lang()][key]??translations.en[key]??key;Object.entries(values).forEach(([keyName,replacement])=>{value=value.replaceAll(`{{${keyName}}}`,String(replacement));});return value;}
@@ -89,13 +98,13 @@ function moduleOffset(alarm,module){const offset=minutes(module.time)-minutes(al
 function countText(count){return t('moduleCount',{count});}
 
 function applyLanguage(){document.documentElement.lang=lang();$$('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));$$('[data-i18n-placeholder]').forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));$$('[data-i18n-aria]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAria)));$$('.language-option').forEach(btn=>btn.classList.toggle('active',btn.dataset.language===lang()));renderRepeatPicker();updateSoundButton();}
+function applyTheme(){state.theme=normalizeTheme(state.theme);document.documentElement.dataset.theme=state.theme;$$('.theme-option').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===state.theme));}
 function renderRepeatPicker(){const picker=$('#repeat-picker');if(!picker)return;picker.innerHTML=dayLabels().map((label,index)=>`<button class="repeat-option ${selectedRepeat.includes(index)?'active':''}" type="button" data-repeat-day="${index}" aria-label="${label}">${label}</button>`).join('');}
-function renderNext(){const pill=$('#next-pill');if(!pill)return;const alarm=state.alarms.find(item=>item.enabled);if(!alarm){pill.innerHTML=`<strong>${esc(t('noAlarms'))}</strong>`;return;}const time=formatTime(alarm.time);pill.innerHTML=`<strong>${esc(t('nextAlarm'))}: ${time.value} ${time.period}</strong><span>${esc(localizedName(alarm))}</span>`;}
 
 function renderModule(alarm,module){const time=formatTime(module.time);return `<div class="module-row ${module.enabled?'':'is-disabled'}" data-alarm-id="${esc(alarm.id)}" data-module-id="${esc(module.id)}"><span class="module-dot"></span><time>${time.value} ${time.period}</time><div><strong>${esc(localizedName(module))}</strong><small>${esc(moduleOffset(alarm,module))}</small></div><label class="switch" aria-label="${esc(t('toggleModule'))}"><input type="checkbox" data-action="toggle-module" ${module.enabled?'checked':''}/><span class="switch-track"><span class="switch-thumb"></span></span></label><button class="icon-button module-edit" type="button" data-action="edit-module" aria-label="${esc(t('editModuleTitle'))}"><span class="icon icon-edit"></span></button><button class="icon-button danger" type="button" data-action="delete-module" aria-label="${esc(t('deleteModule'))}"><span class="icon icon-trash"></span></button></div>`;}
 function renderAlarm(alarm){const modules=[...(alarm.modules||[])].sort((a,b)=>minutes(a.time)-minutes(b.time));const moduleContent=modules.length?modules.map(module=>renderModule(alarm,module)).join(''):`<div class="module-empty">${esc(t('noModules'))}</div>`;return `<article class="alarm-card ${alarm.enabled?'':'is-disabled'} ${alarm.expanded?'expanded':''}" data-alarm-id="${esc(alarm.id)}"><div class="alarm-row"><div class="alarm-time"><strong>${formatTime(alarm.time).value}</strong><span>${formatTime(alarm.time).period}</span></div><div class="alarm-info"><h2>${esc(localizedName(alarm))}</h2><p>${esc(repeatText(alarm.repeat))} <span>·</span> ${esc(countText(modules.length))}</p><div class="repeat-chips">${dayLabels().map((label,index)=>`<span class="repeat-chip ${alarm.repeat.includes(index)?'active':''}">${label}</span>`).join('')}</div></div><div class="alarm-actions"><button class="icon-button" type="button" data-action="edit-alarm" aria-label="${esc(t('editAlarm'))}"><span class="icon icon-edit"></span></button><button class="icon-button danger" type="button" data-action="delete-alarm" aria-label="${esc(t('deleteAlarm'))}"><span class="icon icon-trash"></span></button><label class="switch" aria-label="${esc(t('toggleAlarm'))}"><input type="checkbox" data-action="toggle-alarm" ${alarm.enabled?'checked':''}/><span class="switch-track"><span class="switch-thumb"></span></span></label><button class="expand-button" type="button" data-action="toggle-expanded" aria-label="${esc(alarm.expanded?t('hideModules'):t('openModules'))}"><span class="icon icon-chevron-down"></span></button></div></div><div class="module-panel ${alarm.expanded?'':'hidden'}"><div class="module-toolbar"><div><h3>${esc(t('modules'))}</h3><span>${esc(countText(modules.length))}</span></div><button class="add-module-button" type="button" data-action="add-module"><span class="icon icon-plus"></span><span>${esc(t('addModule'))}</span></button></div><div class="module-list">${moduleContent}</div></div></article>`;}
-function renderAlarms(){const list=$('#alarm-list');const empty=$('#empty-state');if(!list||!empty)return;list.innerHTML=state.alarms.map(renderAlarm).join('');list.classList.toggle('hidden',!state.alarms.length);empty.classList.toggle('hidden',!!state.alarms.length);renderNext();}
-function renderAll(){applyLanguage();renderAlarms();updateSoundButton();saveState();}
+function renderAlarms(){const list=$('#alarm-list');const empty=$('#empty-state');if(!list||!empty)return;list.innerHTML=state.alarms.map(renderAlarm).join('');list.classList.toggle('hidden',!state.alarms.length);empty.classList.toggle('hidden',!!state.alarms.length);}
+function renderAll(){applyLanguage();applyTheme();renderAlarms();updateSoundButton();saveState();}
 function toast(message){const el=$('#toast');if(!el)return;clearTimeout(toastTimer);el.textContent=message;el.classList.add('show');toastTimer=setTimeout(()=>el.classList.remove('show'),2300);}
 
 function nativeRequest(path,values={}){if(!nativeNotifyPort)return false;const query=Object.entries(values).map(([key,value])=>`${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');const beacon=document.createElement('img');beacon.alt='';beacon.hidden=true;beacon.src=`http://127.0.0.1:${nativeNotifyPort}${path}${query?`?${query}`:''}`;document.body.appendChild(beacon);setTimeout(()=>beacon.remove(),1500);return true;}
@@ -124,6 +133,7 @@ function findAlarm(id){return state.alarms.find(alarm=>alarm.id===id)}
 
 document.addEventListener('click',event=>{
   const language=event.target.closest('[data-language]');if(language){state.language=language.dataset.language==='ko'?'ko':'en';renderAll();return}
+  const theme=event.target.closest('[data-theme]');if(theme){state.theme=normalizeTheme(theme.dataset.theme);renderAll();return}
   const repeat=event.target.closest('[data-repeat-day]');if(repeat){const day=Number(repeat.dataset.repeatDay);selectedRepeat=selectedRepeat.includes(day)?selectedRepeat.filter(item=>item!==day):[...selectedRepeat,day].sort((a,b)=>a-b);renderRepeatPicker();return}
   const action=event.target.closest('[data-action]');if(action){const row=action.closest('[data-alarm-id]');const alarm=findAlarm(row?.dataset.alarmId);const moduleRow=action.closest('[data-module-id]');if(action.dataset.action==='edit-alarm'&&alarm)openAlarmModal(alarm.id);if(action.dataset.action==='delete-alarm'&&alarm){state.alarms=state.alarms.filter(item=>item.id!==alarm.id);renderAll();toast(t('toastAlarmDeleted'));}if(action.dataset.action==='toggle-expanded'&&alarm){alarm.expanded=!alarm.expanded;renderAlarms();saveState();}if(action.dataset.action==='add-module'&&alarm)openModuleModal(alarm.id);if(action.dataset.action==='edit-module'&&alarm&&moduleRow)openModuleModal(alarm.id,moduleRow.dataset.moduleId);if(action.dataset.action==='delete-module'&&alarm&&moduleRow){alarm.modules=alarm.modules.filter(module=>module.id!==moduleRow.dataset.moduleId);renderAll();toast(t('toastModuleDeleted'));}}
   if(event.target.closest('#add-alarm-button,#empty-add-button'))openAlarmModal();if(event.target.closest('#alarm-modal-close,#alarm-cancel-button'))closeBackdrop('#alarm-modal-backdrop');if(event.target.closest('#module-modal-close,#module-cancel-button'))closeBackdrop('#module-modal-backdrop');if(event.target.id==='alarm-modal-backdrop')closeBackdrop('#alarm-modal-backdrop');if(event.target.id==='module-modal-backdrop')closeBackdrop('#module-modal-backdrop');
